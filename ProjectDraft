@@ -1,0 +1,62 @@
+import requests
+
+
+print('Running... This may take a few seconds...')
+def getarticles():
+    articlelist =[]
+    url = 'https://newsapi.org/v2/top-headlines'
+    key = '16be610de7a841fc89a30c5bdbf59203'
+    params = {'apiKey' : key, 'q' : 'corona' or 'covid', 'language': 'en', 'pageSize' : 50}
+    response =requests.get(url, params = params)
+    data = response.json()
+    for articles in data['articles']:
+        articlelist.append(articles['title'])
+    return articlelist
+
+def geturls(article):
+    url = 'https://newsapi.org/v2/top-headlines'
+    key = '16be610de7a841fc89a30c5bdbf59203'
+    params = {'apiKey' : key, 'q' : article,'language': 'en',}
+    response =requests.get(url, params = params)
+    data = response.json()
+    for articles in data['articles']:
+        url = articles['url']
+    return url
+
+def get_article_sentiment(text):
+    url = "http://text-processing.com/api/sentiment/"
+    body = { 'text' : text}
+    response = requests.post(url, data=body)
+    return response.json()
+
+articles = getarticles()
+pos = 0 
+neg = 0
+articlenum = 1
+
+positive_articles = []
+for article in articles:
+    sentiment = get_article_sentiment(article)
+    sentiment = sentiment['probability']['pos']
+    if sentiment > 0.6:
+        pos += 1 
+        positive_articles.append(article)
+    else:
+        neg += 1
+
+print("Here are some positive articles")
+for article in positive_articles:
+    print(f'{articlenum}: {article}')
+    articlenum += 1
+    
+while True:
+    urlchoice = input("Type the number of the article you would like to read(If not type 'q uit'): ")
+    if urlchoice.lower() == 'quit':
+        break
+    else:
+        try:
+            print('Here you go ->', geturls(articles[int(urlchoice)-1]))
+        except ValueError:
+            print('that is not a number')
+        except IndexError:
+            print('thats not a valid number')
